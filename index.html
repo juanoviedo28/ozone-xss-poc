@@ -2,18 +2,24 @@
 <html>
   <head>
     <title>Datos capturados</title>
+    <style>
+      body { font-family: monospace; background: #fff; padding: 20px; }
+      h1 { color: #333; }
+      pre { background: #f4f4f4; padding: 10px; border-radius: 6px; }
+    </style>
   </head>
   <body>
     <h1>Datos capturados desde developers.tide.co</h1>
-    <pre id="data"></pre>
+    <pre id="data">Cargando datos...</pre>
 
     <script>
-      // Verifica si hay algo en window.name
       try {
-        document.getElementById("data").innerText = window.name || "Sin datos en window.name";
+        const datos = window.name;
+        document.getElementById("data").innerText = datos || "No se recibió nada en window.name";
       } catch (e) {
-        document.getElementById("data").innerText = "Error al leer los datos: " + e.message;
+        document.getElementById("data").innerText = "Error: " + e.message;
       }
     </script>
   </body>
 </html>
+
