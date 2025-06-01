@@ -1,4 +1,4 @@
- cat ozone.js              
+          
 //
 // (c) Ozone Financial Technology Limited, 2017
 //
