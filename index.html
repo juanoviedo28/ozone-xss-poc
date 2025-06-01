@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Captured Data</title>
+    <title>Datos capturados</title>
   </head>
   <body>
     <h1>Datos capturados desde developers.tide.co</h1>
     <pre id="data"></pre>
+
     <script>
-      document.getElementById("data").innerText = window.name;
+      // Verifica si hay algo en window.name
+      try {
+        document.getElementById("data").innerText = window.name || "Sin datos en window.name";
+      } catch (e) {
+        document.getElementById("data").innerText = "Error al leer los datos: " + e.message;
+      }
     </script>
   </body>
 </html>
